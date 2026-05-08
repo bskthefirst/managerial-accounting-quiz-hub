@@ -1230,7 +1230,7 @@ export default function Ch03Quiz({ onComplete } = {}) {
       {/* ── Sticky scenario bar for long questions ── */}
       {needsSticky && (
         <div style={{
-          position:"sticky", top:0, zIndex:100,
+          position:"sticky", top:72, zIndex:100,
           background:"#1e293b", borderBottom:"2px solid #0d9488",
           boxShadow:"0 3px 14px rgba(0,0,0,.3)",
           marginBottom:8, borderRadius:"0 0 8px 8px",
