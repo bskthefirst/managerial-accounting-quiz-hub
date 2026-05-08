@@ -24,6 +24,17 @@ const DEFAULT_HISTORY = [
     seeded: true,
     note: "Pre-site attempt",
   },
+  {
+    id: "seed-ch05-100",
+    chapterId: "ch05",
+    chapterLabel: "Chapter 5",
+    percent: 100,
+    correct: 43,
+    total: 43,
+    completedAt: "2026-05-08T09:30:00-05:00",
+    seeded: true,
+    note: "Captured before refresh",
+  },
 ];
 
 const CHAPTERS = {
@@ -63,7 +74,16 @@ function safeLoadHistory() {
     if (raw === null) return DEFAULT_HISTORY;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length === 0) return DEFAULT_HISTORY;
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return DEFAULT_HISTORY;
+    const byId = new Map(DEFAULT_HISTORY.map(item => [item.id, item]));
+    parsed.forEach(item => {
+      if (item && item.id) byId.set(item.id, item);
+    });
+    return Array.from(byId.values()).sort((a, b) => {
+      const at = new Date(a.completedAt || 0).getTime();
+      const bt = new Date(b.completedAt || 0).getTime();
+      return at - bt;
+    });
   } catch {
     return DEFAULT_HISTORY;
   }
