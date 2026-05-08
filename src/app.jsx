@@ -4,6 +4,27 @@ import Ch02Quiz from "./quizzes/ch02-quiz.jsx";
 import Ch03Quiz from "./quizzes/ch03-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
+const SUPPRESS_SEED_KEY = "managerial-accounting-quiz-history-suppress-seed-v1";
+const DEFAULT_HISTORY = [
+  {
+    id: "seed-ch01-82",
+    chapterId: "ch01",
+    chapterLabel: "Chapter 1",
+    percent: 82,
+    completedAt: "2026-05-07T09:00:00-05:00",
+    seeded: true,
+    note: "Pre-site attempt",
+  },
+  {
+    id: "seed-ch02-76",
+    chapterId: "ch02",
+    chapterLabel: "Chapter 2",
+    percent: 76,
+    completedAt: "2026-05-07T09:15:00-05:00",
+    seeded: true,
+    note: "Pre-site attempt",
+  },
+];
 
 const CHAPTERS = {
   ch01: {
@@ -32,10 +53,13 @@ const CHAPTERS = {
 function safeLoadHistory() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
+    const suppressSeed = window.localStorage.getItem(SUPPRESS_SEED_KEY) === "1";
+    if (raw === null) return suppressSeed ? [] : DEFAULT_HISTORY;
+    const parsed = JSON.parse(raw);
+    if (!suppressSeed && Array.isArray(parsed) && parsed.length === 0) return DEFAULT_HISTORY;
     return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return [];
+    return DEFAULT_HISTORY;
   }
 }
 
@@ -192,7 +216,11 @@ function HistoryPage({ history, onStart, onClearHistory }) {
                         <div style={styles.attemptOrdinal}>{ordinal(index + 1)} try</div>
                         <div style={styles.attemptScore}>{attempt.percent}%</div>
                         <div style={styles.attemptDetails}>
-                          <span>{attempt.correct} / {attempt.total}</span>
+                          <span>
+                            {Number.isFinite(attempt.correct) && Number.isFinite(attempt.total)
+                              ? `${attempt.correct} / ${attempt.total}`
+                              : attempt.note || "Pre-site attempt"}
+                          </span>
                           <span>{formatDateTime(attempt.completedAt)}</span>
                         </div>
                       </div>
@@ -264,6 +292,11 @@ export default function App() {
   }, []);
 
   const clearHistory = React.useCallback(() => {
+    try {
+      window.localStorage.setItem(SUPPRESS_SEED_KEY, "1");
+    } catch {
+      // Ignore storage failures.
+    }
     setHistory([]);
   }, []);
 
