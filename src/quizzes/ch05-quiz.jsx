@@ -218,14 +218,20 @@ function calcScore(q, ans) {
     if (q.forecast2) chkVal(`${q.id}_fc2`, q.forecast2.y, 500);
   }
   if (q.type==="cm_statement") {
-    q.lines.filter(l=>!l.header).forEach((_,i) => chkVal(`${q.id}_${i}`, q.lines[i].answer, 1));
+    q.lines.forEach((line,i) => {
+      if (!line.header) chkVal(`${q.id}_${i}`, line.answer, 1);
+    });
   }
   if (q.type==="mcq") {
     chkSel(`${q.id}_mcq`, q.answer);
   }
   if (q.type==="dual_statement") {
-    q.traditional.filter(l=>!l.header).forEach((l,i) => chkVal(`${q.id}_t_${i}`, l.answer, 1));
-    q.contribution.filter(l=>!l.header).forEach((l,i) => chkVal(`${q.id}_c_${i}`, l.answer, 1));
+    q.traditional.forEach((line,i) => {
+      if (!line.header) chkVal(`${q.id}_t_${i}`, line.answer, 1);
+    });
+    q.contribution.forEach((line,i) => {
+      if (!line.header) chkVal(`${q.id}_c_${i}`, line.answer, 1);
+    });
     if (q.whyMcq) chkSel(`${q.id}_why`, q.whyMcq.answer);
   }
   return { total, correct };
@@ -241,11 +247,11 @@ function allFilled(q, ans) {
     const base = ans[`${q.id}_fixed`] && ans[`${q.id}_var`] && ans[`${q.id}_fc1`];
     return q.forecast2 ? base && !!ans[`${q.id}_fc2`] : !!base;
   }
-  if (q.type==="cm_statement") return q.lines.filter(l=>!l.header).every((_,i)=>!!ans[`${q.id}_${i}`]);
+  if (q.type==="cm_statement") return q.lines.every((line,i)=>line.header || !!ans[`${q.id}_${i}`]);
   if (q.type==="mcq")           return !!ans[`${q.id}_mcq`];
   if (q.type==="dual_statement") {
-    const t = q.traditional.filter(l=>!l.header).every((_,i)=>!!ans[`${q.id}_t_${i}`]);
-    const c = q.contribution.filter(l=>!l.header).every((_,i)=>!!ans[`${q.id}_c_${i}`]);
+    const t = q.traditional.every((line,i)=>line.header || !!ans[`${q.id}_t_${i}`]);
+    const c = q.contribution.every((line,i)=>line.header || !!ans[`${q.id}_c_${i}`]);
     return q.whyMcq ? t && c && !!ans[`${q.id}_why`] : t && c;
   }
   return true;
