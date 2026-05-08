@@ -294,6 +294,16 @@ function BehaviorBtn({ label, selected, correct, revealed, onClick }) {
   );
 }
 
+function StepBox({ title, children, marginBottom = 0 }) {
+  return (
+    <div style={{ border:"1.5px solid #e2e8f0", borderRadius:8, overflow:"hidden", marginBottom }}>
+      <div style={{ padding:"8px 14px", background:"#f1f5f9", borderBottom:"1px solid #e2e8f0",
+        fontSize:13, fontWeight:700, color:"#334155" }}>{title}</div>
+      <div style={{ padding:"14px" }}>{children}</div>
+    </div>
+  );
+}
+
 // ─── COST BEHAVIOR ────────────────────────────────────────────────────────────
 function CostBehaviorBody({ q, ans, setAns, revealed }) {
   return (
@@ -368,14 +378,6 @@ function CostBehaviorBody({ q, ans, setAns, revealed }) {
 function HighLowBody({ q, ans, setAns, revealed }) {
   const [showData, setShowData] = useState(false);
   const hasFc2 = !!q.forecast2;
-
-  const StepBox = ({ title, children }) => (
-    <div style={{ border:"1.5px solid #e2e8f0", borderRadius:8, overflow:"hidden" }}>
-      <div style={{ padding:"8px 14px", background:"#f1f5f9", borderBottom:"1px solid #e2e8f0",
-        fontSize:13, fontWeight:700, color:"#334155" }}>{title}</div>
-      <div style={{ padding:"14px" }}>{children}</div>
-    </div>
-  );
 
   return (
     <div style={{ padding:"0 16px 16px" }}>
@@ -488,13 +490,6 @@ function HighLowBody({ q, ans, setAns, revealed }) {
 // ─── REGRESSION ───────────────────────────────────────────────────────────────
 function RegressionBody({ q, ans, setAns, revealed }) {
   const hasFc2 = !!q.forecast2;
-  const StepBox = ({ title, children }) => (
-    <div style={{ border:"1.5px solid #e2e8f0", borderRadius:8, overflow:"hidden", marginBottom:10 }}>
-      <div style={{ padding:"8px 14px", background:"#f1f5f9", borderBottom:"1px solid #e2e8f0",
-        fontSize:13, fontWeight:700, color:"#334155" }}>{title}</div>
-      <div style={{ padding:"14px" }}>{children}</div>
-    </div>
-  );
   return (
     <div style={{ padding:"0 16px 16px" }}>
       {/* Excel output card */}
@@ -565,7 +560,7 @@ function RegressionBody({ q, ans, setAns, revealed }) {
         </div>
       )}
 
-      <StepBox title="① Build Cost Equation: Y = f + vX">
+      <StepBox title="① Build Cost Equation: Y = f + vX" marginBottom={10}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:10 }}>
           <span style={{ fontSize:13, color:"#334155" }}>Fixed cost (f) = $</span>
           <NumInput k={`${q.id}_fixed`} ans={ans} setAns={setAns} revealed={revealed}
@@ -584,7 +579,7 @@ function RegressionBody({ q, ans, setAns, revealed }) {
         )}
       </StepBox>
 
-      <StepBox title={`② Forecast: ${q.forecastLabel}`}>
+      <StepBox title={`② Forecast: ${q.forecastLabel}`} marginBottom={10}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontSize:13, color:"#334155" }}>Estimated costs = $</span>
           <NumInput k={`${q.id}_fc1`} ans={ans} setAns={setAns} revealed={revealed}
@@ -593,7 +588,7 @@ function RegressionBody({ q, ans, setAns, revealed }) {
       </StepBox>
 
       {hasFc2 && (
-        <StepBox title={`③ Forecast: ${q.forecastLabel2}`}>
+        <StepBox title={`③ Forecast: ${q.forecastLabel2}`} marginBottom={10}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ fontSize:13, color:"#334155" }}>Estimated costs = $</span>
             <NumInput k={`${q.id}_fc2`} ans={ans} setAns={setAns} revealed={revealed}
