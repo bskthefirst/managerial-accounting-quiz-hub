@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { loadQuizDraft, saveQuizDraft } from "./quiz-progress.js";
 
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 const fmtDisplay = (n) => {
@@ -1090,13 +1091,14 @@ function ResultsScreen({ grades, onRetry, onReview }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function Ch03Quiz({ onComplete } = {}) {
-  const [current,    setCurrent]    = useState(0);
-  const [answers,    setAnswers]    = useState(QUESTIONS.map(() => ({})));
-  const [checked,    setChecked]    = useState(QUESTIONS.map(() => false));
-  const [grades,     setGrades]     = useState({});
-  const [screen,     setScreen]     = useState("quiz");
-  const [revIdx,     setRevIdx]     = useState(0);
-  const [stickyOpen, setStickyOpen] = useState(true);
+  const [savedDraft] = useState(() => loadQuizDraft("ch03"));
+  const [current,    setCurrent]    = useState(() => Number.isInteger(savedDraft?.current) ? savedDraft.current : 0);
+  const [answers,    setAnswers]    = useState(() => Array.isArray(savedDraft?.answers) && savedDraft.answers.length === QUESTIONS.length ? savedDraft.answers : QUESTIONS.map(() => ({})));
+  const [checked,    setChecked]    = useState(() => Array.isArray(savedDraft?.checked) && savedDraft.checked.length === QUESTIONS.length ? savedDraft.checked : QUESTIONS.map(() => false));
+  const [grades,     setGrades]     = useState(() => (savedDraft?.grades && typeof savedDraft.grades === "object" && !Array.isArray(savedDraft.grades) ? savedDraft.grades : {}));
+  const [screen,     setScreen]     = useState(() => (savedDraft?.screen === "quiz" || savedDraft?.screen === "review") ? savedDraft.screen : "quiz");
+  const [revIdx,     setRevIdx]     = useState(() => Number.isInteger(savedDraft?.revIdx) ? savedDraft.revIdx : 0);
+  const [stickyOpen, setStickyOpen] = useState(() => savedDraft?.stickyOpen !== false);
   const reportedResult = useRef(false);
 
   const q         = QUESTIONS[current];
@@ -1142,6 +1144,11 @@ export default function Ch03Quiz({ onComplete } = {}) {
       completedAt: new Date().toISOString(),
     });
   }, [screen, grades, onComplete]);
+
+  useEffect(() => {
+    if (screen === "results") return;
+    saveQuizDraft("ch03", { current, answers, checked, grades, screen, revIdx, stickyOpen });
+  }, [current, answers, checked, grades, screen, revIdx, stickyOpen]);
 
   const CSS = `
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');

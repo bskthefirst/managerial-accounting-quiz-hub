@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { loadQuizDraft, saveQuizDraft } from "./quiz-progress.js";
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const rw      = v => (v || "").replace(/,/g, "");
@@ -937,12 +938,13 @@ function ResultsScreen({ grades, onRetry, onReview }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function Ch05Quiz({ onComplete } = {}) {
-  const [cur,        setCur]        = useState(0);
-  const [ans,        setAns]        = useState({});
-  const [graded,     setGraded]     = useState({});
-  const [screen,     setScreen]     = useState("quiz");
-  const [revIdx,     setRevIdx]     = useState(0);
-  const [stickyOpen, setStickyOpen] = useState(true);
+  const [savedDraft] = useState(() => loadQuizDraft("ch05"));
+  const [cur,        setCur]        = useState(() => Number.isInteger(savedDraft?.cur) ? savedDraft.cur : 0);
+  const [ans,        setAns]        = useState(() => (savedDraft?.ans && typeof savedDraft.ans === "object" && !Array.isArray(savedDraft.ans) ? savedDraft.ans : {}));
+  const [graded,     setGraded]     = useState(() => (savedDraft?.graded && typeof savedDraft.graded === "object" && !Array.isArray(savedDraft.graded) ? savedDraft.graded : {}));
+  const [screen,     setScreen]     = useState(() => (savedDraft?.screen === "quiz" || savedDraft?.screen === "review") ? savedDraft.screen : "quiz");
+  const [revIdx,     setRevIdx]     = useState(() => Number.isInteger(savedDraft?.revIdx) ? savedDraft.revIdx : 0);
+  const [stickyOpen, setStickyOpen] = useState(() => savedDraft?.stickyOpen !== false);
   const reportedResult = useRef(false);
 
   const q          = QUESTIONS[cur];
@@ -976,6 +978,11 @@ export default function Ch05Quiz({ onComplete } = {}) {
       completedAt: new Date().toISOString(),
     });
   }, [screen, graded, onComplete]);
+
+  useEffect(() => {
+    if (screen === "results") return;
+    saveQuizDraft("ch05", { cur, ans, graded, screen, revIdx, stickyOpen });
+  }, [cur, ans, graded, screen, revIdx, stickyOpen]);
 
   const CSS = `
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
