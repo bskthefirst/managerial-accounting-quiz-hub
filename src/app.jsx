@@ -595,6 +595,6 @@ const styles = {
   },
   quizFrame: {
     borderRadius: 18,
-    overflow: "hidden",
+    overflow: "visible",
   },
 };
