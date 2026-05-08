@@ -4,7 +4,6 @@ import Ch02Quiz from "./quizzes/ch02-quiz.jsx";
 import Ch03Quiz from "./quizzes/ch03-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
-const SUPPRESS_SEED_KEY = "managerial-accounting-quiz-history-suppress-seed-v1";
 const DEFAULT_HISTORY = [
   {
     id: "seed-ch01-82",
@@ -53,10 +52,9 @@ const CHAPTERS = {
 function safeLoadHistory() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    const suppressSeed = window.localStorage.getItem(SUPPRESS_SEED_KEY) === "1";
-    if (raw === null) return suppressSeed ? [] : DEFAULT_HISTORY;
+    if (raw === null) return DEFAULT_HISTORY;
     const parsed = JSON.parse(raw);
-    if (!suppressSeed && Array.isArray(parsed) && parsed.length === 0) return DEFAULT_HISTORY;
+    if (Array.isArray(parsed) && parsed.length === 0) return DEFAULT_HISTORY;
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return DEFAULT_HISTORY;
@@ -292,11 +290,6 @@ export default function App() {
   }, []);
 
   const clearHistory = React.useCallback(() => {
-    try {
-      window.localStorage.setItem(SUPPRESS_SEED_KEY, "1");
-    } catch {
-      // Ignore storage failures.
-    }
     setHistory([]);
   }, []);
 
