@@ -3,6 +3,7 @@ import Ch01Quiz from "./quizzes/ch01-quiz.jsx";
 import Ch02Quiz from "./quizzes/ch02-quiz.jsx";
 import Ch03Quiz from "./quizzes/ch03-quiz.jsx";
 import Ch05Quiz from "./quizzes/ch05-quiz.jsx";
+import Ch06Quiz from "./quizzes/ch06-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
 const DEFAULT_HISTORY = [
@@ -65,6 +66,13 @@ const CHAPTERS = {
     title: "Chapter 5",
     summary: "Cost behavior, high-low method, regression, and contribution margin",
     component: Ch05Quiz,
+  },
+  ch06: {
+    id: "ch06",
+    label: "Chapter 6",
+    title: "Chapter 6",
+    summary: "Cost-volume-profit analysis, break-even, and sensitivity",
+    component: Ch06Quiz,
   },
 };
 
