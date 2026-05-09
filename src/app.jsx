@@ -5,6 +5,7 @@ import Ch03Quiz from "./quizzes/ch03-quiz.jsx";
 import Ch05Quiz from "./quizzes/ch05-quiz.jsx";
 import Ch06Quiz from "./quizzes/ch06-quiz.jsx";
 import Ch07Quiz from "./quizzes/ch07-quiz.jsx";
+import Ch08Quiz from "./quizzes/ch08-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
 const DEFAULT_HISTORY = [
@@ -81,6 +82,13 @@ const CHAPTERS = {
     title: "Chapter 7",
     summary: "Differential analysis, special orders, product lines, and customer decisions",
     component: Ch07Quiz,
+  },
+  ch08: {
+    id: "ch08",
+    label: "Chapter 8",
+    title: "Chapter 8",
+    summary: "Capital budgeting, NPV, IRR, and payback analysis",
+    component: Ch08Quiz,
   },
 };
 
