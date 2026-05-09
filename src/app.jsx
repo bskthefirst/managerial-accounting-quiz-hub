@@ -6,6 +6,7 @@ import Ch05Quiz from "./quizzes/ch05-quiz.jsx";
 import Ch06Quiz from "./quizzes/ch06-quiz.jsx";
 import Ch07Quiz from "./quizzes/ch07-quiz.jsx";
 import Ch08Quiz from "./quizzes/ch08-quiz.jsx";
+import Ch09Quiz from "./quizzes/ch09-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
 const DEFAULT_HISTORY = [
@@ -89,6 +90,13 @@ const CHAPTERS = {
     title: "Chapter 8",
     summary: "Capital budgeting, NPV, IRR, and payback analysis",
     component: Ch08Quiz,
+  },
+  ch09: {
+    id: "ch09",
+    label: "Chapter 9",
+    title: "Chapter 9",
+    summary: "Operating budgets, cash collections, and cash payments",
+    component: Ch09Quiz,
   },
 };
 
