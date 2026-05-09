@@ -42,6 +42,8 @@ const MONO  = { fontFamily: "'JetBrains Mono','Courier New',monospace" };
 const SLATE = { background: "linear-gradient(135deg,#334155,#475569)" };
 const TEAL  = "#0d9488";
 const INDIGO_G = { background: "linear-gradient(135deg,#4f46e5,#6366f1)" };
+const NPV_GRID_COLS = "60px minmax(220px,1fr) 150px 180px";
+const NPV_MIN_WIDTH = 760;
 
 // ─── QUESTION DATA ─────────────────────────────────────────────────────────────
 const QUESTIONS = [
@@ -548,7 +550,7 @@ function GivenSpan({ value, negative }) {
 // NPV table header row
 function NPVTableHeader({ col1Label }) {
   return (
-    <div style={{ ...SLATE, display: "grid", gridTemplateColumns: "60px 1fr 110px 115px",
+    <div style={{ ...SLATE, display: "grid", gridTemplateColumns: NPV_GRID_COLS,
       borderBottom: "1px solid #334155" }}>
       <div style={{ padding: "8px 10px", color: "#94a3b8", fontWeight: 700, fontSize: 11 }}>{col1Label || "Year"}</div>
       <div style={{ padding: "8px 10px", color: "#fff", fontWeight: 700, fontSize: 11 }}>Cash Flow</div>
@@ -577,7 +579,7 @@ function NPVDataRow({ row, rowIdx, cfSk, fcSk, pvSk, ans, setAns, revealed, isLa
   const isPVNeg = row.pvCorrect < 0;
   const bg = rowIdx % 2 === 0 ? "#fff" : "#f8fafc";
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 110px 115px",
+    <div style={{ display: "grid", gridTemplateColumns: NPV_GRID_COLS,
       background: bg, borderBottom: isLast ? "none" : "1px solid #f1f5f9",
       alignItems: "center" }}>
       <div style={{ padding: "6px 10px", fontSize: 12.5, fontWeight: 600, color: "#475569",
@@ -603,7 +605,7 @@ function IRRDataRow({ row, rowIdx, cf, fcSk, pvSk, ans, setAns, revealed, isLast
   const isPVNeg = row.pvCorrect < 0;
   const bg = rowIdx % 2 === 0 ? "#fff" : "#f8fafc";
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 110px 115px",
+    <div style={{ display: "grid", gridTemplateColumns: NPV_GRID_COLS,
       background: bg, borderBottom: isLast ? "none" : "1px solid #f1f5f9",
       alignItems: "center" }}>
       <div style={{ padding: "6px 10px", fontSize: 12.5, fontWeight: 600, color: "#475569", ...MONO }}>{row.year}</div>
@@ -626,7 +628,7 @@ function IRRDataRow({ row, rowIdx, cf, fcSk, pvSk, ans, setAns, revealed, isLast
 function NPVTotalRow({ npvSk, ans, setAns, correct, tol, revealed }) {
   const isNeg = correct < 0;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 110px 115px",
+    <div style={{ display: "grid", gridTemplateColumns: NPV_GRID_COLS,
       background: "#f1f5f9", borderTop: "2px solid #cbd5e1" }}>
       <div style={{ padding: "8px 10px", fontSize: 12, fontWeight: 700, color: "#334155",
         gridColumn: "1/4", display: "flex", alignItems: "center" }}>
@@ -705,14 +707,18 @@ function NPVScheduleBody({ part, ans, setAns, revealed, prefix }) {
             {part.title}
           </div>
         )}
-        <NPVTableHeader />
-        {part.rows.map((row, i) => (
-          <NPVDataRow key={i} row={row} rowIdx={i} ans={ans} setAns={setAns}
-            cfSk={`${prefix}cf${i}`} fcSk={`${prefix}fc${i}`} pvSk={`${prefix}pv${i}`}
-            revealed={revealed} isLast={i === part.rows.length - 1} />
-        ))}
-        <NPVTotalRow npvSk={`${prefix}npv`} ans={ans} setAns={setAns}
-          correct={part.npvCorrect} tol={part.npvTol} revealed={revealed} />
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ minWidth: NPV_MIN_WIDTH }}>
+            <NPVTableHeader />
+            {part.rows.map((row, i) => (
+              <NPVDataRow key={i} row={row} rowIdx={i} ans={ans} setAns={setAns}
+                cfSk={`${prefix}cf${i}`} fcSk={`${prefix}fc${i}`} pvSk={`${prefix}pv${i}`}
+                revealed={revealed} isLast={i === part.rows.length - 1} />
+            ))}
+            <NPVTotalRow npvSk={`${prefix}npv`} ans={ans} setAns={setAns}
+              correct={part.npvCorrect} tol={part.npvTol} revealed={revealed} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -727,14 +733,18 @@ function TwinNPVBody({ part, ans, setAns, revealed, prefix }) {
           <div style={{ ...INDIGO_G, padding: "9px 12px", fontSize: 12.5, fontWeight: 700, color: "#fff" }}>
             {sched.name} — NPV at {part.rate}%
           </div>
-          <NPVTableHeader />
-          {sched.rows.map((row, ri) => (
-            <NPVDataRow key={ri} row={row} rowIdx={ri} ans={ans} setAns={setAns}
-              cfSk={`${prefix}s${si}_cf${ri}`} fcSk={`${prefix}s${si}_fc${ri}`} pvSk={`${prefix}s${si}_pv${ri}`}
-              revealed={revealed} isLast={ri === sched.rows.length - 1} />
-          ))}
-          <NPVTotalRow npvSk={`${prefix}s${si}_npv`} ans={ans} setAns={setAns}
-            correct={sched.npvCorrect} tol={sched.npvTol} revealed={revealed} />
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: NPV_MIN_WIDTH }}>
+              <NPVTableHeader />
+              {sched.rows.map((row, ri) => (
+                <NPVDataRow key={ri} row={row} rowIdx={ri} ans={ans} setAns={setAns}
+                  cfSk={`${prefix}s${si}_cf${ri}`} fcSk={`${prefix}s${si}_fc${ri}`} pvSk={`${prefix}s${si}_pv${ri}`}
+                  revealed={revealed} isLast={ri === sched.rows.length - 1} />
+              ))}
+              <NPVTotalRow npvSk={`${prefix}s${si}_npv`} ans={ans} setAns={setAns}
+                correct={sched.npvCorrect} tol={sched.npvTol} revealed={revealed} />
+            </div>
+          </div>
         </div>
       ))}
 
@@ -776,15 +786,19 @@ function IRRBracketBody({ part, ans, setAns, revealed, prefix }) {
               background: isPositive ? "linear-gradient(135deg,#059669,#10b981)" : "linear-gradient(135deg,#dc2626,#ef4444)" }}>
               Trial Rate: {trial.rate}% — {isPositive ? "NPV is positive → IRR is higher than this rate" : "NPV is negative → IRR is lower than this rate"}
             </div>
-            <NPVTableHeader col1Label="Year" />
-            {trial.rows.map((row, ri) => (
-              <IRRDataRow key={ri} row={row} rowIdx={ri} cf={baseCFs[ri].cf}
-                fcSk={`${tpfx}fc${ri}`} pvSk={`${tpfx}pv${ri}`}
-                ans={ans} setAns={setAns} revealed={revealed}
-                isLast={ri === trial.rows.length - 1} />
-            ))}
-            <NPVTotalRow npvSk={`${tpfx}npv`} ans={ans} setAns={setAns}
-              correct={trial.npvCorrect} tol={trial.npvTol} revealed={revealed} />
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ minWidth: NPV_MIN_WIDTH }}>
+                <NPVTableHeader col1Label="Year" />
+                {trial.rows.map((row, ri) => (
+                  <IRRDataRow key={ri} row={row} rowIdx={ri} cf={baseCFs[ri].cf}
+                    fcSk={`${tpfx}fc${ri}`} pvSk={`${tpfx}pv${ri}`}
+                    ans={ans} setAns={setAns} revealed={revealed}
+                    isLast={ri === trial.rows.length - 1} />
+                ))}
+                <NPVTotalRow npvSk={`${tpfx}npv`} ans={ans} setAns={setAns}
+                  correct={trial.npvCorrect} tol={trial.npvTol} revealed={revealed} />
+              </div>
+            </div>
           </div>
         );
       })}
