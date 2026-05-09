@@ -4,6 +4,7 @@ import Ch02Quiz from "./quizzes/ch02-quiz.jsx";
 import Ch03Quiz from "./quizzes/ch03-quiz.jsx";
 import Ch05Quiz from "./quizzes/ch05-quiz.jsx";
 import Ch06Quiz from "./quizzes/ch06-quiz.jsx";
+import Ch07Quiz from "./quizzes/ch07-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
 const DEFAULT_HISTORY = [
@@ -73,6 +74,13 @@ const CHAPTERS = {
     title: "Chapter 6",
     summary: "Cost-volume-profit analysis, break-even, and sensitivity",
     component: Ch06Quiz,
+  },
+  ch07: {
+    id: "ch07",
+    label: "Chapter 7",
+    title: "Chapter 7",
+    summary: "Differential analysis, special orders, product lines, and customer decisions",
+    component: Ch07Quiz,
   },
 };
 
