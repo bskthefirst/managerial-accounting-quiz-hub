@@ -137,6 +137,29 @@ function applyHistoryMigrations(history) {
     }
   }
 
+  // Restore missing Chapter 3 second attempt reported after accidental history clear.
+  const ch3Attempts = next
+    .filter(item => item && item.chapterId === "ch03")
+    .sort((a, b) => new Date(a.completedAt || 0).getTime() - new Date(b.completedAt || 0).getTime());
+  const hasCh3Second93 = ch3Attempts.some(item => Number(item.percent) === 93);
+  const hasSingleCh3First90 =
+    ch3Attempts.length === 1 &&
+    Number(ch3Attempts[0].percent) === 90 &&
+    Number(ch3Attempts[0].correct) === 75 &&
+    Number(ch3Attempts[0].total) === 83;
+  if (!hasCh3Second93 && hasSingleCh3First90) {
+    const firstTime = new Date(ch3Attempts[0].completedAt || Date.now()).getTime();
+    next.push({
+      id: "migrated-ch03-second-93",
+      chapterId: "ch03",
+      chapterLabel: "Chapter 3",
+      percent: 93,
+      note: "Restored after accidental history clear",
+      completedAt: new Date(firstTime + 60 * 1000).toISOString(),
+      migrated: true,
+    });
+  }
+
   // Remove false duplicate attempts caused by autosave recovery or duplicate event writes.
   const sorted = [...next].sort((a, b) => {
     const at = new Date(a.completedAt || 0).getTime();
