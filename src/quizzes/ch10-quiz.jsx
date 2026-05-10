@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { loadQuizDraft, saveQuizDraft } from "./quiz-progress.js";
+import { loadQuizDraft, saveQuizDraft, clearQuizDraft } from "./quiz-progress.js";
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const parseNum = s => {
@@ -1139,7 +1139,17 @@ function ResultsScreen({ grades, onRetry, onReview }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function Ch10Quiz({ onComplete } = {}) {
-  const [savedDraft] = useState(() => loadQuizDraft("ch10"));
+  const [savedDraft] = useState(() => {
+    const draft = loadQuizDraft("ch10");
+    if (!draft || typeof draft !== "object" || Array.isArray(draft)) return null;
+    const grades = draft.graded;
+    const isComplete = grades && typeof grades === "object" && QUESTIONS.every(q => grades[q.id]);
+    if (isComplete) {
+      clearQuizDraft("ch10");
+      return null;
+    }
+    return draft;
+  });
   const [cur,        setCur]        = useState(savedDraft?.cur ?? 0);
   const [ans,        setAns]        = useState(savedDraft?.ans ?? {});
   const [graded,     setGraded]     = useState(savedDraft?.graded ?? {});
@@ -1184,6 +1194,10 @@ export default function Ch10Quiz({ onComplete } = {}) {
       completedAt: new Date().toISOString(),
     });
   }, [screen, graded, onComplete]);
+
+  useEffect(() => {
+    if (screen === "results") clearQuizDraft("ch10");
+  }, [screen]);
 
   useEffect(() => {
     if (screen === "results") return;

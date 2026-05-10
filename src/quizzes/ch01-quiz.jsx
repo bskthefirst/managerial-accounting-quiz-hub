@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { loadQuizDraft, saveQuizDraft } from "./quiz-progress.js";
+import { loadQuizDraft, saveQuizDraft, clearQuizDraft } from "./quiz-progress.js";
 
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 const fmtDisplay = (n) => {
@@ -766,7 +766,17 @@ function ResultsScreen({ grades, onRetry, onReview }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function Ch01Quiz({ onComplete } = {}) {
-  const [savedDraft] = useState(() => loadQuizDraft("ch01"));
+  const [savedDraft] = useState(() => {
+    const draft = loadQuizDraft("ch01");
+    if (!draft || typeof draft !== "object" || Array.isArray(draft)) return null;
+    const checked = draft.checked;
+    const isComplete = Array.isArray(checked) && checked.length === QUESTIONS.length && checked.every(Boolean);
+    if (isComplete) {
+      clearQuizDraft("ch01");
+      return null;
+    }
+    return draft;
+  });
   const [current,  setCurrent]  = useState(() => Number.isInteger(savedDraft?.current) ? savedDraft.current : 0);
   const [answers,  setAnswers]  = useState(() => Array.isArray(savedDraft?.answers) && savedDraft.answers.length === QUESTIONS.length ? savedDraft.answers : QUESTIONS.map(() => ({})));
   const [checked,  setChecked]  = useState(() => Array.isArray(savedDraft?.checked) && savedDraft.checked.length === QUESTIONS.length ? savedDraft.checked : QUESTIONS.map(() => false));
@@ -818,6 +828,10 @@ export default function Ch01Quiz({ onComplete } = {}) {
       completedAt: new Date().toISOString(),
     });
   }, [screen, grades, onComplete]);
+
+  useEffect(() => {
+    if (screen === "results") clearQuizDraft("ch01");
+  }, [screen]);
 
   useEffect(() => {
     if (screen === "results") return;
