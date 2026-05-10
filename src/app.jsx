@@ -7,6 +7,7 @@ import Ch06Quiz from "./quizzes/ch06-quiz.jsx";
 import Ch07Quiz from "./quizzes/ch07-quiz.jsx";
 import Ch08Quiz from "./quizzes/ch08-quiz.jsx";
 import Ch09Quiz from "./quizzes/ch09-quiz.jsx";
+import Ch10Quiz from "./quizzes/ch10-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
 const DEFAULT_HISTORY = [
@@ -97,6 +98,13 @@ const CHAPTERS = {
     title: "Chapter 9",
     summary: "Operating budgets, cash collections, and cash payments",
     component: Ch09Quiz,
+  },
+  ch10: {
+    id: "ch10",
+    label: "Chapter 10",
+    title: "Chapter 10",
+    summary: "Standard costs, variance analysis, and performance evaluation",
+    component: Ch10Quiz,
   },
 };
 
