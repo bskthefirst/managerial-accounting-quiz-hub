@@ -8,6 +8,8 @@ import Ch07Quiz from "./quizzes/ch07-quiz.jsx";
 import Ch08Quiz from "./quizzes/ch08-quiz.jsx";
 import Ch09Quiz from "./quizzes/ch09-quiz.jsx";
 import Ch10Quiz from "./quizzes/ch10-quiz.jsx";
+import Ch05Special from "./quizzes/ch05-special.jsx";
+import Ch06Special from "./quizzes/ch06-special.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
 const HISTORY_BACKUP_KEY = "managerial-accounting-quiz-history-backup-v1";
@@ -107,6 +109,20 @@ const CHAPTERS = {
     title: "Chapter 10",
     summary: "Standard costs, variance analysis, and performance evaluation",
     component: Ch10Quiz,
+  },
+  ch05sp: {
+    id: "ch05sp",
+    label: "Ch5 SP",
+    title: "Chapter 5 Special",
+    summary: "Graph-based cost behavior matching practice",
+    component: Ch05Special,
+  },
+  ch06sp: {
+    id: "ch06sp",
+    label: "Ch6 SP",
+    title: "Chapter 6 Special",
+    summary: "Extended CVP and sensitivity analysis practice",
+    component: Ch06Special,
   },
 };
 
