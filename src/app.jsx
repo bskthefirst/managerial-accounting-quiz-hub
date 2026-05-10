@@ -364,7 +364,7 @@ function HomePage({ history, onStart, onOpenHistory }) {
   );
 }
 
-function HistoryPage({ history, onStart, onClearHistory, onRestoreHistory, canRestoreHistory }) {
+function HistoryPage({ history, onStart }) {
   const chapterIds = Object.keys(CHAPTERS);
 
   return (
@@ -374,12 +374,6 @@ function HistoryPage({ history, onStart, onClearHistory, onRestoreHistory, canRe
           <div>
             <h2 style={styles.sectionTitle}>Score History</h2>
             <div style={styles.sectionMeta}>Every completed attempt is grouped by chapter.</div>
-          </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            {canRestoreHistory && (
-              <button onClick={onRestoreHistory} style={styles.secondaryButton}>Restore Cleared</button>
-            )}
-            <button onClick={onClearHistory} style={styles.secondaryButton}>Clear History</button>
           </div>
         </div>
 
@@ -451,10 +445,6 @@ function QuizPage({ chapter, onBackHome, onOpenHistory, onComplete }) {
 export default function App() {
   const [route, setRoute] = React.useState(() => routeFromHash());
   const [history, setHistory] = React.useState(() => safeLoadHistory());
-  const [canRestoreHistory, setCanRestoreHistory] = React.useState(() => {
-    const backup = loadHistoryBackup();
-    return Array.isArray(backup) && backup.length > 0;
-  });
 
   React.useEffect(() => {
     const onHashChange = () => setRoute(routeFromHash());
@@ -483,28 +473,6 @@ export default function App() {
 
   const openHistory = React.useCallback(() => {
     window.location.hash = routeToHash({ page: "history" });
-  }, []);
-
-  const clearHistory = React.useCallback(() => {
-    saveHistoryBackup(history);
-    setCanRestoreHistory(Array.isArray(history) && history.length > 0);
-    setHistory([]);
-  }, [history]);
-
-  const restoreHistory = React.useCallback(() => {
-    const backup = loadHistoryBackup();
-    if (backup && backup.length > 0) {
-      setHistory(applyHistoryMigrations(mergeWithDefaults(backup)));
-      setCanRestoreHistory(false);
-      return;
-    }
-    const recovered = recoverAttemptsFromProgress();
-    if (recovered.length > 0) {
-      setHistory(applyHistoryMigrations(mergeWithDefaults(recovered)));
-    } else {
-      setHistory(applyHistoryMigrations(mergeWithDefaults(DEFAULT_HISTORY)));
-    }
-    setCanRestoreHistory(false);
   }, []);
 
   const recordAttempt = React.useCallback((attempt) => {
@@ -537,13 +505,7 @@ export default function App() {
       )}
 
       {route.page === "history" && (
-        <HistoryPage
-          history={history}
-          onStart={start}
-          onClearHistory={clearHistory}
-          onRestoreHistory={restoreHistory}
-          canRestoreHistory={canRestoreHistory}
-        />
+        <HistoryPage history={history} onStart={start} />
       )}
 
       {route.page === "quiz" && chapter && (
