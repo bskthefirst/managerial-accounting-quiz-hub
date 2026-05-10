@@ -108,6 +108,36 @@ const CHAPTERS = {
   },
 };
 
+function applyHistoryMigrations(history) {
+  const next = Array.isArray(history) ? [...history] : [];
+  const ch2Attempts = next
+    .map((attempt, index) => ({ attempt, index }))
+    .filter(({ attempt }) => attempt.chapterId === "ch02")
+    .sort((a, b) => {
+      const at = new Date(a.attempt.completedAt || 0).getTime();
+      const bt = new Date(b.attempt.completedAt || 0).getTime();
+      return at - bt;
+    });
+
+  const second = ch2Attempts[1];
+  if (second) {
+    const a = second.attempt;
+    const looksLikeQ32BugScore =
+      Number(a.correct) === 63 && Number(a.total) === 68 && Number(a.percent) === 93;
+    if (looksLikeQ32BugScore) {
+      next[second.index] = {
+        ...a,
+        correct: 67,
+        total: 68,
+        percent: 99,
+        note: "Adjusted after Q32 scoring bug fix",
+      };
+    }
+  }
+
+  return next;
+}
+
 function safeLoadHistory() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -119,11 +149,12 @@ function safeLoadHistory() {
     parsed.forEach(item => {
       if (item && item.id) byId.set(item.id, item);
     });
-    return Array.from(byId.values()).sort((a, b) => {
+    const sorted = Array.from(byId.values()).sort((a, b) => {
       const at = new Date(a.completedAt || 0).getTime();
       const bt = new Date(b.completedAt || 0).getTime();
       return at - bt;
     });
+    return applyHistoryMigrations(sorted);
   } catch {
     return DEFAULT_HISTORY;
   }
