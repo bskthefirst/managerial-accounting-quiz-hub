@@ -345,8 +345,10 @@ function scoreQuestion(q, ans) {
         mark(`${pfx}decision`, part.correct);
         part.closingRows.forEach((row, ri) => {
           total += 2;
-          if (ans[`${pfx}cl_r${ri}_acct`] === row.account) correct++;
-          const raw = parseInput(ans[`${pfx}cl_r${ri}_amt`]||"");
+          const acctKey = `${pfx}cl_e0_r${ri}_acct`;
+          const amtKey = `${pfx}cl_e0_r${ri}_amt`;
+          if (ans[acctKey] === row.account) correct++;
+          const raw = parseInput(ans[amtKey]||"");
           if (raw !== null && Math.abs(raw - row.amount) < 1) correct++;
         });
       }
@@ -375,7 +377,7 @@ function allFilled(q, ans) {
         return !!ans[`${pfx}bal_amt`] && !!ans[`${pfx}bal_side`];
       if (part.type === "over_under")
         return !!ans[`${pfx}decision`] &&
-          part.closingRows.every((_,ri) => ans[`${pfx}cl_r${ri}_acct`] && ans[`${pfx}cl_r${ri}_amt`]);
+          part.closingRows.every((_,ri) => ans[`${pfx}cl_e0_r${ri}_acct`] && ans[`${pfx}cl_e0_r${ri}_amt`]);
       return true;
     });
   }
