@@ -10,6 +10,8 @@ import Ch09Quiz from "./quizzes/ch09-quiz.jsx";
 import Ch10Quiz from "./quizzes/ch10-quiz.jsx";
 
 const STORAGE_KEY = "managerial-accounting-quiz-history-v1";
+const HISTORY_BACKUP_KEY = "managerial-accounting-quiz-history-backup-v1";
+const PROGRESS_KEY = "managerial-accounting-quiz-progress-v1";
 const DEFAULT_HISTORY = [
   {
     id: "seed-ch01-82",
@@ -138,22 +140,108 @@ function applyHistoryMigrations(history) {
   return next;
 }
 
+function mergeWithDefaults(history) {
+  const byId = new Map(DEFAULT_HISTORY.map(item => [item.id, item]));
+  (Array.isArray(history) ? history : []).forEach(item => {
+    if (item && item.id) byId.set(item.id, item);
+  });
+  return Array.from(byId.values()).sort((a, b) => {
+    const at = new Date(a.completedAt || 0).getTime();
+    const bt = new Date(b.completedAt || 0).getTime();
+    return at - bt;
+  });
+}
+
+function readStorageJsonObject(key) {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function recoverAttemptsFromProgress() {
+  const data = readStorageJsonObject(PROGRESS_KEY);
+  if (!data || Array.isArray(data)) return [];
+  const recovered = [];
+
+  Object.entries(CHAPTERS).forEach(([chapterId, chapter]) => {
+    const draft = data[chapterId];
+    if (!draft || typeof draft !== "object" || Array.isArray(draft)) return;
+    const grades = draft.graded || draft.grades;
+    if (!grades || typeof grades !== "object" || Array.isArray(grades)) return;
+
+    const values = Object.values(grades).filter(
+      item => item && typeof item === "object" && Number.isFinite(item.correct) && Number.isFinite(item.total),
+    );
+    if (values.length === 0) return;
+
+    const totals = values.reduce((acc, item) => {
+      acc.correct += Number(item.correct) || 0;
+      acc.total += Number(item.total) || 0;
+      return acc;
+    }, { correct: 0, total: 0 });
+    if (!totals.total) return;
+
+    recovered.push({
+      id: `recovered-${chapterId}-latest`,
+      chapterId,
+      chapterLabel: chapter.label,
+      correct: totals.correct,
+      total: totals.total,
+      percent: Math.round((totals.correct / totals.total) * 100),
+      completedAt: draft.updatedAt || new Date().toISOString(),
+      recovered: true,
+      note: "Recovered from autosave after accidental clear",
+    });
+  });
+
+  return recovered;
+}
+
+function saveHistoryBackup(history) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(HISTORY_BACKUP_KEY, JSON.stringify(history));
+  } catch {
+    // Ignore backup write failures.
+  }
+}
+
+function loadHistoryBackup() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(HISTORY_BACKUP_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function safeLoadHistory() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw === null) return DEFAULT_HISTORY;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length === 0) return DEFAULT_HISTORY;
+    if (Array.isArray(parsed) && parsed.length === 0) {
+      const backup = loadHistoryBackup();
+      if (backup && backup.length > 0) {
+        return applyHistoryMigrations(mergeWithDefaults(backup));
+      }
+      const recovered = recoverAttemptsFromProgress();
+      if (recovered.length > 0) {
+        return applyHistoryMigrations(mergeWithDefaults(recovered));
+      }
+      return DEFAULT_HISTORY;
+    }
     if (!Array.isArray(parsed)) return DEFAULT_HISTORY;
-    const byId = new Map(DEFAULT_HISTORY.map(item => [item.id, item]));
-    parsed.forEach(item => {
-      if (item && item.id) byId.set(item.id, item);
-    });
-    const sorted = Array.from(byId.values()).sort((a, b) => {
-      const at = new Date(a.completedAt || 0).getTime();
-      const bt = new Date(b.completedAt || 0).getTime();
-      return at - bt;
-    });
+    const sorted = mergeWithDefaults(parsed);
     return applyHistoryMigrations(sorted);
   } catch {
     return DEFAULT_HISTORY;
@@ -276,7 +364,7 @@ function HomePage({ history, onStart, onOpenHistory }) {
   );
 }
 
-function HistoryPage({ history, onStart, onClearHistory }) {
+function HistoryPage({ history, onStart, onClearHistory, onRestoreHistory, canRestoreHistory }) {
   const chapterIds = Object.keys(CHAPTERS);
 
   return (
@@ -287,7 +375,12 @@ function HistoryPage({ history, onStart, onClearHistory }) {
             <h2 style={styles.sectionTitle}>Score History</h2>
             <div style={styles.sectionMeta}>Every completed attempt is grouped by chapter.</div>
           </div>
-          <button onClick={onClearHistory} style={styles.secondaryButton}>Clear History</button>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {canRestoreHistory && (
+              <button onClick={onRestoreHistory} style={styles.secondaryButton}>Restore Cleared</button>
+            )}
+            <button onClick={onClearHistory} style={styles.secondaryButton}>Clear History</button>
+          </div>
         </div>
 
         <div style={{ display: "grid", gap: 16 }}>
@@ -358,6 +451,10 @@ function QuizPage({ chapter, onBackHome, onOpenHistory, onComplete }) {
 export default function App() {
   const [route, setRoute] = React.useState(() => routeFromHash());
   const [history, setHistory] = React.useState(() => safeLoadHistory());
+  const [canRestoreHistory, setCanRestoreHistory] = React.useState(() => {
+    const backup = loadHistoryBackup();
+    return Array.isArray(backup) && backup.length > 0;
+  });
 
   React.useEffect(() => {
     const onHashChange = () => setRoute(routeFromHash());
@@ -389,7 +486,25 @@ export default function App() {
   }, []);
 
   const clearHistory = React.useCallback(() => {
+    saveHistoryBackup(history);
+    setCanRestoreHistory(Array.isArray(history) && history.length > 0);
     setHistory([]);
+  }, [history]);
+
+  const restoreHistory = React.useCallback(() => {
+    const backup = loadHistoryBackup();
+    if (backup && backup.length > 0) {
+      setHistory(applyHistoryMigrations(mergeWithDefaults(backup)));
+      setCanRestoreHistory(false);
+      return;
+    }
+    const recovered = recoverAttemptsFromProgress();
+    if (recovered.length > 0) {
+      setHistory(applyHistoryMigrations(mergeWithDefaults(recovered)));
+    } else {
+      setHistory(applyHistoryMigrations(mergeWithDefaults(DEFAULT_HISTORY)));
+    }
+    setCanRestoreHistory(false);
   }, []);
 
   const recordAttempt = React.useCallback((attempt) => {
@@ -422,7 +537,13 @@ export default function App() {
       )}
 
       {route.page === "history" && (
-        <HistoryPage history={history} onStart={start} onClearHistory={clearHistory} />
+        <HistoryPage
+          history={history}
+          onStart={start}
+          onClearHistory={clearHistory}
+          onRestoreHistory={restoreHistory}
+          canRestoreHistory={canRestoreHistory}
+        />
       )}
 
       {route.page === "quiz" && chapter && (
