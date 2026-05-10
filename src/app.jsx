@@ -137,7 +137,39 @@ function applyHistoryMigrations(history) {
     }
   }
 
-  return next;
+  // Remove false duplicate attempts caused by autosave recovery or duplicate event writes.
+  const sorted = [...next].sort((a, b) => {
+    const at = new Date(a.completedAt || 0).getTime();
+    const bt = new Date(b.completedAt || 0).getTime();
+    return at - bt;
+  });
+  const deduped = [];
+  sorted.forEach((attempt) => {
+    if (!attempt || !attempt.chapterId) return;
+    const sameScore = prev =>
+      prev.chapterId === attempt.chapterId &&
+      Number(prev.percent) === Number(attempt.percent) &&
+      Number(prev.correct ?? NaN) === Number(attempt.correct ?? NaN) &&
+      Number(prev.total ?? NaN) === Number(attempt.total ?? NaN);
+
+    // If this is a recovered row with the exact same score as a real row, prefer the real row.
+    if (attempt.recovered) {
+      const hasRealTwin = deduped.some(prev => !prev.recovered && sameScore(prev));
+      if (hasRealTwin) return;
+    }
+
+    // If a non-recovered duplicate was written again moments later, keep only the first write.
+    const twin = deduped.find(prev => sameScore(prev));
+    if (twin && !attempt.recovered && !twin.recovered) {
+      const t1 = new Date(twin.completedAt || 0).getTime();
+      const t2 = new Date(attempt.completedAt || 0).getTime();
+      if (Number.isFinite(t1) && Number.isFinite(t2) && Math.abs(t2 - t1) <= 10 * 60 * 1000) return;
+    }
+
+    deduped.push(attempt);
+  });
+
+  return deduped;
 }
 
 function mergeWithDefaults(history) {
